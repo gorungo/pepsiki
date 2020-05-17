@@ -1,4 +1,4 @@
-# pesiki
+# pesiki is the best
 
 ## Project setup
 ```
