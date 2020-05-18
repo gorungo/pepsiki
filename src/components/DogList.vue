@@ -10,6 +10,10 @@
                         @liked="handleLiked"
                 ></dog-list-item>
             </div>
+            <div v-if="!loading && dogs && dogs.length === 0">
+                Нет песелей
+            </div>
+            <loading v-if="loading && !(dogs && dogs.length > 0)" ></loading>
             <btn-to-top />
         </div>
         <load-more-observer
@@ -26,6 +30,7 @@
     import LoadMoreObserver from "../components/LoadMoreObserver"
     import DogListItem from './DogListItem'
     import BtnToTop from "./BtnToTop";
+    import Loading from "./Loading";
 
     export default {
         name: "DogList",
@@ -45,10 +50,11 @@
         },
 
         computed: {
-            ...mapGetters(['loading', 'maxPage', 'activePage']),
+            ...mapGetters(['loading', 'activePage']),
         },
 
         components: {
+            Loading,
             BtnToTop,
             DogListItem, LoadMoreObserver
         },
@@ -62,7 +68,6 @@
 
             async handleLoadMore(){
                 if(this.loadMore && !this.loading){
-                    this.setLoading(true)
                     await this.loadNewPage()
                 }
             },

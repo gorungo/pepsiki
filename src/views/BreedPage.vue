@@ -5,7 +5,6 @@
                 :breeds="visibleBreeds"
         />
         <dog-list
-                v-if="visibleDogs && visibleDogs.length > 0"
                 :dogs="visibleDogs"
                 :load-more=true
         ></dog-list>
@@ -26,7 +25,7 @@
         },
 
         async mounted(){
-            await this.setActiveBreed(this.$route.params.breed)
+            await this.setActiveBreed(this.visibleBreeds.find((breed) => this.$route.params.breed === breed.title))
             this.fetchImages()
         },
 

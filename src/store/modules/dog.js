@@ -32,9 +32,6 @@ export default {
 
         setPage({commit}, page){
             commit('setPage', page)
-            if(page === 1) {
-                commit('clearImages')
-            }
         },
 
         setLoading({commit}, loading){
@@ -48,7 +45,8 @@ export default {
          * @param commit
          * @param state
          */
-        async loadNewPage({dispatch}){
+        async loadNewPage({state, dispatch}){
+            dispatch('setPage', state.page + 1)
             dispatch('fetchImages');
         },
 
@@ -56,23 +54,31 @@ export default {
 
             const breed = state.activeBreed
             const url = !breed
-                ? 'https://dog.ceo/api/breeds/image/random/20'
-                : `https://dog.ceo/api/breed/${breed}/images/random/20`
+                ? `https://dog.ceo/api/breeds/image/random/${state.limit}&_page=${state.page}`
+                : `https://dog.ceo/api/breed/${breed.parent !== null ? breed.parent : breed.name }/images/random/${state.limit}&_page=${state.page}`
 
-            commit('setLoading', true)
+            if(state.lastUrl !== url){
+                commit('setLoading', true)
 
-            try{
-                const res = await axios.get(url)
-                const images = await res.data
+                if(state.page === 1) {
+                    commit('clearImages')
+                }
 
-                commit('addImages', images.message)
+                try{
+                    const res = await axios.get(url)
+                    const images = await res.data
 
-            }catch(e){
-                console.log('Случилось страшное', e.message)
+                    commit('addImages', images.message)
 
+                }catch(e){
+                    console.log('Случилось страшное', e.message)
+
+                }
+
+                commit('setLastUrl', url)
+
+                commit('setLoading', false)
             }
-
-            commit('setLoading', false)
         },
 
         async fetchBreeds({commit}){
@@ -175,6 +181,10 @@ export default {
 
         setLoading(state, newLoading){
             state.loading = newLoading
+        },
+
+        setLastUrl(state, lastUrl){
+            state.lastUrl = lastUrl
         }
     },
 
@@ -184,6 +194,7 @@ export default {
         favoriteImages: [],
 
         activeBreed: null,
+        lastUrl: null,
         page: 1,
         limit: 20,
         loading: false,
@@ -201,7 +212,7 @@ export default {
         visibleDogs(state){
             if(state.images.length > 0){
 
-                const images = state.images.map((image, index) => {
+                let images = state.images.map((image, index) => {
                     const title = image.split('/')[4];
                     return {
                         id: index,
@@ -210,6 +221,12 @@ export default {
                         inFavorite: state.favoriteImages.indexOf(image) > -1
                     }
                 })
+
+                if(state.activeBreed && state.activeBreed.parent !== null){
+                    images = images.filter((image) => {
+                        return image.title === state.activeBreed.title
+                    })
+                }
 
                 // sort if needed
                 if(state.sort === 'alphabet'){
@@ -240,7 +257,7 @@ export default {
 
 
         activeBreed(state){
-            return state.activeBreed
+            return state.activeBreed ? state.activeBreed : null
         },
 
         visibleBreeds(state){
@@ -250,7 +267,20 @@ export default {
             for (let prop in state.breeds) {
                 newBreeds.push({
                     title: prop,
+                    name: prop,
+                    parent: null,
                 })
+
+                if(Object.prototype.hasOwnProperty.call(state.breeds, prop) && state.breeds[prop].length > 0){
+                    state.breeds[prop].forEach((subBreed) => {
+                        newBreeds.push({
+                            name: subBreed,
+                            title: `${prop}-${subBreed}`,
+                            parent: prop,
+                        })
+                    })
+                }
+
 
             }
 

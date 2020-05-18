@@ -6,10 +6,10 @@
                     <span>Породы</span>
                     <img src="/images/dropdown.svg" />
                 </div>
-                <div v-if="$route.name === 'breed'">
+                <div v-if="activeBreed && $route.name === 'breed'">
                     <div class="breed-item">
                         <router-link to="/" class="btn breed-item__link router-link-exact-active" style="margin: 0; margin-left: 20px;">
-                            <span class="breed-item__title">{{$route.params.breed}} &times;</span>
+                            <span class="breed-item__title">{{activeBreed.title}} &times;</span>
                         </router-link>
                     </div>
                 </div>
@@ -31,8 +31,8 @@
                     <span class="breed-item__title">Все пёсели</span>
                 </router-link>
             </div>
-            <div class="breed-selector" v-if="breeds.length > 0">
-                <div v-for="(breed, index) in breeds"
+            <div class="breed-selector" v-if="visibleBreeds.length > 0">
+                <div v-for="(breed, index) in visibleBreeds"
                      :key="breed.title"
                      class="breed-item"
                 >
@@ -61,17 +61,17 @@
             }
         },
 
-        computed: mapGetters(['breedSelectorOpened', 'activeSort']),
+        computed: mapGetters(['breedSelectorOpened', 'activeSort', 'activeBreed', 'visibleBreeds']),
 
         watch: {
             $route(to) {
-                this.$store.dispatch('setActiveBreed', to.params.breed)
+                this.$store.dispatch('setActiveBreed', this.visibleBreeds.find((breed) => to.params.breed === breed.title))
             }
         },
 
         methods: {
             needLetter(index) {
-                return index === 0 || this.breeds[index].title.charAt(0) !== this.breeds[index - 1].title.charAt(0)
+                return index === 0 || this.visibleBreeds[index].title.charAt(0) !== this.visibleBreeds[index - 1].title.charAt(0)
             },
 
             firstLetterOf(breed) {
