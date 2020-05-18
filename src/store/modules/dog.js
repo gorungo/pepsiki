@@ -1,3 +1,4 @@
+import axios from 'axios'
 
 export default {
     actions: {
@@ -61,13 +62,13 @@ export default {
             commit('setLoading', true)
 
             try{
-                const res = await fetch(url)
-                const images = await res.json()
+                const res = await axios.get(url)
+                const images = await res.data
 
                 commit('addImages', images.message)
 
             }catch(e){
-                console.log('Случилось страшное')
+                console.log('Случилось страшное', e.message)
 
             }
 
@@ -80,12 +81,12 @@ export default {
             commit('setLoading', true)
 
             try{
-                const res = await fetch(url)
-                const breeds = await res.json()
+                const res = await axios.get(url)
+                const breeds = await res.data
                 commit('updateBreeds', breeds.message)
 
             }catch(e){
-                console.log('Случилось страшное')
+                console.log('Случилось страшное', e.message)
 
             }
 
